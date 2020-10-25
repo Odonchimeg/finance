@@ -36,19 +36,33 @@ var uiController = (function () {
                 html = '<div class="item clearfix" id="income-%id%"><div class="item__description">%description%</div>' +
                     '<div class="right clearfix"><div class="item__value">+ %value%.00</div><div class="item__delete">' +
                     '<button class="item__delete--btn"><i class="ion-ios-close-outline"></i></button></div></div></div>';
-                    list = DOMstrings.incList;
+                list = DOMstrings.incList;
             } else {
                 html = '<div class="item clearfix" id="expense-%id%"><div class="item__description">%description%</div>' +
                     '<div class="right clearfix"><div class="item__value">- %value%.00</div><div class="item__percentage">21%</div>' +
                     '<div class="item__delete"><button class="item__delete--btn"><i class="ion-ios-close-outline"></i></button>' +
                     '</div></div></div>';
-                    list = DOMstrings.expList;
+                list = DOMstrings.expList;
             }
             html = html.replace("%id%", item.id);
             html = html.replace("%description%", item.description);
             html = html.replace("%value%", item.value);
 
             document.querySelector(list).insertAdjacentHTML("beforeend", html);
+        },
+
+        clearFields: function () {
+            var fields = document.querySelectorAll(
+                DOMstrings.inputDescription + ", " + DOMstrings.inputValue
+            );
+
+            //convert list to array
+            var fieldsArr = Array.prototype.slice.call(fields);
+            fieldsArr.forEach(element => {
+                element.value = "";
+            });
+
+            fieldsArr[0].focus();
         }
     }
 
@@ -123,6 +137,7 @@ var appController = (function (uiCtrl, financeCtrl) {
 
         // 3. өгөгдлийг тохирох хэсэгт харуулна
         uiCtrl.addListItem(item, inputVal.addType);
+        uiCtrl.clearFields();
 
         // 4. Төсвийг тооцоолно
 
