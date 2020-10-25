@@ -12,7 +12,7 @@ var uiController = (function () {
     return {
         getInput: function () {
             return {
-                addType: document.querySelector(DOMstrings.inputType).value,
+                addType: document.querySelector(DOMstrings.inputType).value,  //exp || inc
                 description: document.querySelector(DOMstrings.inputDescription).value,
                 value: document.querySelector(DOMstrings.inputValue).value
             }
@@ -32,29 +32,50 @@ var uiController = (function () {
 //controller work with calculation
 var financeController = (function () {
 
+    //private
+    var Income = function (id, description, value) {
+        this.id = id;
+        this.description = description;
+        this.value = value;
+    }
+
+    //private
+    var Expense = function (id, description, value) {
+        this.id = id;
+        this.description = description;
+        this.value = value;
+    }
+
+    //private
     var data = {
-        allItems : {
-            inc : [],
-            exp : []
+        allItems: {
+            inc: [],
+            exp: []
         },
 
-        totals : {
-            inc : 0,
-            exp : 0
+        totals: {
+            inc: 0,
+            exp: 0
         }
     }
 
-    var Income = function (id, description, value){
-        this.id = id;
-        this.description = description;
-        this.value = value;
-    }
+    return {
 
-    var Expense = function (id, description, value){
-        this.id = id;
-        this.description = description;
-        this.value = value;
-    }   
+        addItem: function (type, desc, val) {
+            var item, id;
+
+            if (data.allItems[type].length === 0)
+                id = 1;
+            else
+                id = data.allItems[type][data.allItems[type].length - 1].id + 1;
+
+            if (type === "inc")
+                item = new Income(id, desc, val);
+            else item = new Expense(id, desc, val);
+
+            data.allItems[type].push(item);
+        }
+    }
 
 })();
 
@@ -67,6 +88,7 @@ var appController = (function (uiCtrl, financeCtrl) {
         var inputVal = uiCtrl.getInput();
 
         // 2. өгөгдлийг санхүүгийн модульд дамжуулж хадгална.
+        financeCtrl.addItem(inputVal.addType, inputVal.description, inputVal.value);
 
         // 3. өгөгдлийг тохирох хэсэгт харуулна
 
@@ -91,7 +113,7 @@ var appController = (function (uiCtrl, financeCtrl) {
     }
 
     return {
-        init : function(){
+        init: function () {
             setupEventListeners();
         }
     }
