@@ -61,8 +61,6 @@ var financeController = (function () {
 //controller work with
 var appController = (function (uiCtrl, financeCtrl) {
 
-    var DOMstrings = uiCtrl.getDOMstrings();
-
     var ctrlAddItem = function () {
 
         // 1. оруулсан өгөгдлийг дэлгэцээс авах
@@ -79,6 +77,8 @@ var appController = (function (uiCtrl, financeCtrl) {
     }
 
     var setupEventListeners = function () {
+
+        var DOMstrings = uiCtrl.getDOMstrings();
 
         document.querySelector(DOMstrings.addBtn).addEventListener("click", function () {
             ctrlAddItem();
