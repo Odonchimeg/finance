@@ -6,7 +6,9 @@ var uiController = (function () {
         inputDescription: ".add__description",
         inputValue: ".add__value",
         addBtn: ".add__btn",
-        budgetValue: ".budget__value"
+        budgetValue: ".budget__value",
+        expList: ".expenses__list",
+        incList: ".income__list"
     };
 
     return {
@@ -25,6 +27,29 @@ var uiController = (function () {
         setBudgetValue: function (val) {
             document.querySelector(DOMstrings.budgetValue).textContent = "+ " + val;
         },
+
+        addListItem: function (item, type) {
+
+            var html, list;
+
+            if (type === 'inc') {
+                html = '<div class="item clearfix" id="income-%id%"><div class="item__description">%description%</div>' +
+                    '<div class="right clearfix"><div class="item__value">+ %value%.00</div><div class="item__delete">' +
+                    '<button class="item__delete--btn"><i class="ion-ios-close-outline"></i></button></div></div></div>';
+                    list = DOMstrings.incList;
+            } else {
+                html = '<div class="item clearfix" id="expense-%id%"><div class="item__description">%description%</div>' +
+                    '<div class="right clearfix"><div class="item__value">- %value%.00</div><div class="item__percentage">21%</div>' +
+                    '<div class="item__delete"><button class="item__delete--btn"><i class="ion-ios-close-outline"></i></button>' +
+                    '</div></div></div>';
+                    list = DOMstrings.expList;
+            }
+            html = html.replace("%id%", item.id);
+            html = html.replace("%description%", item.description);
+            html = html.replace("%value%", item.value);
+
+            document.querySelector(list).insertAdjacentHTML("beforeend", html);
+        }
     }
 
 })();
@@ -74,6 +99,8 @@ var financeController = (function () {
             else item = new Expense(id, desc, val);
 
             data.allItems[type].push(item);
+
+            return item;
         }
     }
 
@@ -88,9 +115,14 @@ var appController = (function (uiCtrl, financeCtrl) {
         var inputVal = uiCtrl.getInput();
 
         // 2. өгөгдлийг санхүүгийн модульд дамжуулж хадгална.
-        financeCtrl.addItem(inputVal.addType, inputVal.description, inputVal.value);
+        var item = financeCtrl.addItem(
+            inputVal.addType,
+            inputVal.description,
+            inputVal.value
+        );
 
         // 3. өгөгдлийг тохирох хэсэгт харуулна
+        uiCtrl.addListItem(item, inputVal.addType);
 
         // 4. Төсвийг тооцоолно
 
