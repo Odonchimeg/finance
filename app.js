@@ -8,7 +8,11 @@ var uiController = (function () {
         addBtn: ".add__btn",
         budgetValue: ".budget__value",
         expList: ".expenses__list",
-        incList: ".income__list"
+        incList: ".income__list",
+        incLabel: ".budget__income--value",
+        expLabel: ".budget__expenses--value",
+        percentLabel: ".budget__expenses--percentage",
+        budgetLabel: ".budget__value"
     };
 
     return {
@@ -16,7 +20,7 @@ var uiController = (function () {
             return {
                 addType: document.querySelector(DOMstrings.inputType).value,  //exp || inc
                 description: document.querySelector(DOMstrings.inputDescription).value,
-                value: document.querySelector(DOMstrings.inputValue).value
+                value: parseInt(document.querySelector(DOMstrings.inputValue).value)
             }
         },
 
@@ -63,6 +67,13 @@ var uiController = (function () {
             });
 
             fieldsArr[0].focus();
+        },
+
+        showBudget: function (budget) {
+            document.querySelector(DOMstrings.incLabel).textContent = "+ " + budget.totalInc;
+            document.querySelector(DOMstrings.expLabel).textContent = "- " + budget.totalExp;
+            document.querySelector(DOMstrings.percentLabel).textContent = budget.percent + (budget.percent === 0 ? "":"%");
+            document.querySelector(DOMstrings.budgetLabel).textContent = budget.totalBudget;
         }
     }
 
@@ -95,7 +106,19 @@ var financeController = (function () {
         totals: {
             inc: 0,
             exp: 0
-        }
+        },
+
+        budget: -1,
+        percent: 0
+    }
+
+    var calculateTotal = function (type) {
+
+        data.totals[type] = 0;
+
+        data.allItems[type].forEach(element => {
+            data.totals[type] += element.value;
+        });
     }
 
     return {
@@ -115,6 +138,30 @@ var financeController = (function () {
             data.allItems[type].push(item);
 
             return item;
+        },
+
+        calculateBudget: function () {
+
+            //total income
+            calculateTotal("inc");
+
+            //total expense
+            calculateTotal("exp");
+
+            //total budget of month
+            data.budget = data.totals.inc - data.totals.exp;
+
+            //calculate percent of expense
+            data.percent = Math.round((data.totals.exp / data.totals.inc) * 100);
+        },
+
+        getBudget: function () {
+            return {
+                totalInc : data.totals.inc,
+                totalExp : data.totals.exp,
+                totalBudget : data.budget,
+                percent : data.percent
+            }
         }
     }
 
@@ -128,21 +175,26 @@ var appController = (function (uiCtrl, financeCtrl) {
         // 1. оруулсан өгөгдлийг дэлгэцээс авах
         var inputVal = uiCtrl.getInput();
 
-        // 2. өгөгдлийг санхүүгийн модульд дамжуулж хадгална.
-        var item = financeCtrl.addItem(
-            inputVal.addType,
-            inputVal.description,
-            inputVal.value
-        );
+        if (inputVal.description !== "" && inputVal.value !== "") {
 
-        // 3. өгөгдлийг тохирох хэсэгт харуулна
-        uiCtrl.addListItem(item, inputVal.addType);
-        uiCtrl.clearFields();
+            // 2. өгөгдлийг санхүүгийн модульд дамжуулж хадгална.
+            var item = financeCtrl.addItem(
+                inputVal.addType,
+                inputVal.description,
+                inputVal.value
+            );
 
-        // 4. Төсвийг тооцоолно
+            // 3. өгөгдлийг тохирох хэсэгт харуулна
+            uiCtrl.addListItem(item, inputVal.addType);
+            uiCtrl.clearFields();
 
-        // 5. Нийт үлдэгдэл, тооцоог дэлгэцэнд харуулна
+            // 4. Төсвийг тооцоолно
+            financeCtrl.calculateBudget();
+            var budget = financeCtrl.getBudget();
 
+            // 5. Нийт үлдэгдэл, тооцоог дэлгэцэнд харуулна
+            uiCtrl.showBudget(budget);
+        }
     }
 
     var setupEventListeners = function () {
@@ -161,6 +213,12 @@ var appController = (function (uiCtrl, financeCtrl) {
 
     return {
         init: function () {
+            uiCtrl.showBudget({
+                totalInc : 0,
+                totalExp : 0,
+                totalBudget : 0,
+                percent : 0
+            });
             setupEventListeners();
         }
     }
