@@ -12,7 +12,8 @@ var uiController = (function () {
         incLabel: ".budget__income--value",
         expLabel: ".budget__expenses--value",
         percentLabel: ".budget__expenses--percentage",
-        budgetLabel: ".budget__value"
+        budgetLabel: ".budget__value",
+        container: ".container"
     };
 
     return {
@@ -37,12 +38,12 @@ var uiController = (function () {
             var html, list;
 
             if (type === 'inc') {
-                html = '<div class="item clearfix" id="income-%id%"><div class="item__description">%description%</div>' +
+                html = '<div class="item clearfix" id="inc-%id%"><div class="item__description">%description%</div>' +
                     '<div class="right clearfix"><div class="item__value">+ %value%.00</div><div class="item__delete">' +
                     '<button class="item__delete--btn"><i class="ion-ios-close-outline"></i></button></div></div></div>';
                 list = DOMstrings.incList;
             } else {
-                html = '<div class="item clearfix" id="expense-%id%"><div class="item__description">%description%</div>' +
+                html = '<div class="item clearfix" id="exp-%id%"><div class="item__description">%description%</div>' +
                     '<div class="right clearfix"><div class="item__value">- %value%.00</div><div class="item__percentage">21%</div>' +
                     '<div class="item__delete"><button class="item__delete--btn"><i class="ion-ios-close-outline"></i></button>' +
                     '</div></div></div>';
@@ -53,6 +54,10 @@ var uiController = (function () {
             html = html.replace("%value%", item.value);
 
             document.querySelector(list).insertAdjacentHTML("beforeend", html);
+        },
+
+        removeListItem: function (id) {
+            document.getElementById(id).remove();
         },
 
         clearFields: function () {
@@ -72,7 +77,8 @@ var uiController = (function () {
         showBudget: function (budget) {
             document.querySelector(DOMstrings.incLabel).textContent = "+ " + budget.totalInc;
             document.querySelector(DOMstrings.expLabel).textContent = "- " + budget.totalExp;
-            document.querySelector(DOMstrings.percentLabel).textContent = budget.percent + (budget.percent === 0 ? "":"%");
+            document.querySelector(DOMstrings.percentLabel).textContent = budget.percent 
+            + (budget.percent === 0  || isNaN(budget.percent) ? "" : "%");
             document.querySelector(DOMstrings.budgetLabel).textContent = budget.totalBudget;
         }
     }
@@ -140,6 +146,18 @@ var financeController = (function () {
             return item;
         },
 
+        removeItem: function (type, id) {
+            var ids = data.allItems[type].map(function (el) {
+                return el.id;
+            });
+
+            var index = ids.indexOf(id);
+
+            if (index !== -1) {
+                data.allItems[type].splice(index, 1);
+            }
+        },
+
         calculateBudget: function () {
 
             //total income
@@ -157,12 +175,13 @@ var financeController = (function () {
 
         getBudget: function () {
             return {
-                totalInc : data.totals.inc,
-                totalExp : data.totals.exp,
-                totalBudget : data.budget,
-                percent : data.percent
+                totalInc: data.totals.inc,
+                totalExp: data.totals.exp,
+                totalBudget: data.budget,
+                percent: data.percent
             }
         }
+
     }
 
 })();
@@ -174,8 +193,9 @@ var appController = (function (uiCtrl, financeCtrl) {
 
         // 1. оруулсан өгөгдлийг дэлгэцээс авах
         var inputVal = uiCtrl.getInput();
+        const regex = new RegExp("[0-9]+");
 
-        if (inputVal.description !== "" && inputVal.value !== "") {
+        if (inputVal.description !== "" && regex.test(inputVal.value)) {
 
             // 2. өгөгдлийг санхүүгийн модульд дамжуулж хадгална.
             var item = financeCtrl.addItem(
@@ -209,15 +229,42 @@ var appController = (function (uiCtrl, financeCtrl) {
             if (event.keyCode === 13 || event.which === 13)
                 ctrlAddItem();
         });
+
+        document.querySelector(DOMstrings.container).addEventListener('click', function (event) {
+
+            // 1. хассан item-г дэлгэцээс авах
+            var id = event.target.parentNode.parentNode.parentNode.parentNode.id;
+
+            if (id) {
+
+                var arr = id.split("-");
+                var type = arr[0];
+                var itemId = arr[1]
+
+                // 2. өгөгдлийг санхүүгийн модульд дамжуулж хасна.
+                financeCtrl.removeItem(type, parseInt(itemId));
+
+                // 3. өгөгдлийг тохирох хэсгээс хасна
+                uiCtrl.removeListItem(id);
+
+                // 4. Төсвийг тооцоолно
+                financeCtrl.calculateBudget();
+                var budget = financeCtrl.getBudget();
+
+                // 5. Нийт үлдэгдэл, тооцоог дэлгэцэнд харуулна
+                uiCtrl.showBudget(budget);
+
+            }
+        });
     }
 
     return {
         init: function () {
             uiCtrl.showBudget({
-                totalInc : 0,
-                totalExp : 0,
-                totalBudget : 0,
-                percent : 0
+                totalInc: 0,
+                totalExp: 0,
+                totalBudget: 0,
+                percent: 0
             });
             setupEventListeners();
         }
