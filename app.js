@@ -57,7 +57,9 @@ var uiController = (function () {
         },
 
         removeListItem: function (id) {
-            document.getElementById(id).remove();
+            var item = document.getElementById(id);
+            item.parentNode.removeChild(item);
+            // document.getElementById(id).remove();
         },
 
         clearFields: function () {
@@ -77,8 +79,8 @@ var uiController = (function () {
         showBudget: function (budget) {
             document.querySelector(DOMstrings.incLabel).textContent = "+ " + budget.totalInc;
             document.querySelector(DOMstrings.expLabel).textContent = "- " + budget.totalExp;
-            document.querySelector(DOMstrings.percentLabel).textContent = budget.percent 
-            + (budget.percent === 0  || isNaN(budget.percent) ? "" : "%");
+            document.querySelector(DOMstrings.percentLabel).textContent =
+                budget.percent + (budget.percent === 0 ? "" : "%");
             document.querySelector(DOMstrings.budgetLabel).textContent = budget.totalBudget;
         }
     }
@@ -171,6 +173,7 @@ var financeController = (function () {
 
             //calculate percent of expense
             data.percent = Math.round((data.totals.exp / data.totals.inc) * 100);
+            data.percent = isNaN(data.percent) ? 0 : data.percent;
         },
 
         getBudget: function () {
