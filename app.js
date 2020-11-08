@@ -14,7 +14,8 @@ var uiController = (function () {
         percentLabel: ".budget__expenses--percentage",
         budgetLabel: ".budget__value",
         container: ".container",
-        expensePersentageLabel: ".item__percentage"
+        expensePersentageLabel: ".item__percentage",
+        dateLabel: ".budget__title--month"
     };
 
     var nodeListForeach = function (list, callback) {
@@ -22,6 +23,34 @@ var uiController = (function () {
         for (var i = 0; i < list.length; i++) {
             callback(list[i], i);
         }
+
+    };
+
+    var formatNumber = function (number, type) {
+
+        var _str = "";
+        number += "";
+
+        var reversedStr = number
+            .split("")
+            .reverse()
+            .join("");
+
+        for (var i = 0; i < reversedStr.length; i++) {
+            _str += reversedStr[i];
+            if ((i + 1) % 3 === 0) _str += ",";
+        }
+
+        var result = _str
+            .split("")
+            .reverse()
+            .join("")
+            .replace(/^(,)/, '');
+
+        if (type === "inc") result = "+ " + result;
+        else if (type === "exp") result = "- " + result;
+
+        return result;
 
     }
 
@@ -48,12 +77,12 @@ var uiController = (function () {
 
             if (type === 'inc') {
                 html = '<div class="item clearfix" id="inc-%id%"><div class="item__description">%description%</div>' +
-                    '<div class="right clearfix"><div class="item__value">+ %value%.00</div><div class="item__delete">' +
+                    '<div class="right clearfix"><div class="item__value">%value%.00</div><div class="item__delete">' +
                     '<button class="item__delete--btn"><i class="ion-ios-close-outline"></i></button></div></div></div>';
                 list = DOMstrings.incList;
             } else {
                 html = '<div class="item clearfix" id="exp-%id%"><div class="item__description">%description%</div>' +
-                    '<div class="right clearfix"><div class="item__value">- %value%.00</div><div class="item__percentage">$percentage$%</div>' +
+                    '<div class="right clearfix"><div class="item__value">%value%.00</div><div class="item__percentage">$percentage$%</div>' +
                     '<div class="item__delete"><button class="item__delete--btn"><i class="ion-ios-close-outline"></i></button>' +
                     '</div></div></div>';
                 list = DOMstrings.expList;
@@ -61,7 +90,7 @@ var uiController = (function () {
 
             html = html.replace("%id%", item.id);
             html = html.replace("%description%", item.description);
-            html = html.replace("%value%", item.value);
+            html = html.replace("%value%", formatNumber(item.value, type));
             document.querySelector(list).insertAdjacentHTML("beforeend", html);
         },
 
@@ -86,11 +115,11 @@ var uiController = (function () {
         },
 
         showBudget: function (budget) {
-            document.querySelector(DOMstrings.incLabel).textContent = "+ " + budget.totalInc;
-            document.querySelector(DOMstrings.expLabel).textContent = "- " + budget.totalExp;
+            document.querySelector(DOMstrings.incLabel).textContent = formatNumber(budget.totalInc, "inc");
+            document.querySelector(DOMstrings.expLabel).textContent = formatNumber(budget.totalExp, "exp");
             document.querySelector(DOMstrings.percentLabel).textContent =
                 budget.percent + (budget.percent === 0 ? "" : "%");
-            document.querySelector(DOMstrings.budgetLabel).textContent = budget.totalBudget;
+            document.querySelector(DOMstrings.budgetLabel).textContent = formatNumber(budget.totalBudget);
         },
 
         updateItemPercentages: function (percentages) {
@@ -100,8 +129,15 @@ var uiController = (function () {
             );
 
             nodeListForeach(elements, function (el, index) {
-                el.textContent = percentages[index]+"%";
+                el.textContent = percentages[index] + "%";
             });
+
+        },
+
+        displayDate: function () {
+            var unuudur = new Date();
+            document.querySelector(DOMstrings.dateLabel).textContent
+                = unuudur.getFullYear() + " оны " + unuudur.getMonth() + " сарын"
 
         }
     }
@@ -320,6 +356,7 @@ var appController = (function (uiCtrl, financeCtrl) {
 
     return {
         init: function () {
+            uiCtrl.displayDate();
             uiCtrl.showBudget({
                 totalInc: 0,
                 totalExp: 0,
