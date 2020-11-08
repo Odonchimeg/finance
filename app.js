@@ -137,7 +137,7 @@ var uiController = (function () {
         displayDate: function () {
             var unuudur = new Date();
             document.querySelector(DOMstrings.dateLabel).textContent
-                = unuudur.getFullYear() + " оны " + unuudur.getMonth() + " сарын"
+                = unuudur.getFullYear() + " оны " + unuudur.getMonth()+1 + " сарын"
 
         }
     }
