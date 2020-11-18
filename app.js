@@ -15,7 +15,9 @@ var uiController = (function () {
         budgetLabel: ".budget__value",
         container: ".container",
         expensePersentageLabel: ".item__percentage",
-        dateLabel: ".budget__title--month"
+        dateLabel: ".budget__title--month",
+        focusClassRed: "red-focus",
+        red: ".red"
     };
 
     var nodeListForeach = function (list, callback) {
@@ -137,7 +139,23 @@ var uiController = (function () {
         displayDate: function () {
             var unuudur = new Date();
             document.querySelector(DOMstrings.dateLabel).textContent
-                = unuudur.getFullYear() + " оны " + (unuudur.getMonth()+1) + " сарын"
+                = unuudur.getFullYear() + " оны " + (unuudur.getMonth() + 1) + " сарын"
+
+        },
+
+        changeType: function () {
+            var fields = document.querySelectorAll
+                (
+                DOMstrings.inputType + ', ' +
+                + DOMstrings.inputDescription + ', '
+                + DOMstrings.inputValue
+                );
+
+            nodeListForeach(fields, function (element) {
+                element.classList.toggle(DOMstrings.focusClassRed);
+            });
+
+            document.querySelector(DOMstrings.addBtn).classList.toggle("red");
 
         }
     }
@@ -352,6 +370,8 @@ var appController = (function (uiCtrl, financeCtrl) {
 
             }
         });
+
+        document.querySelector(DOMstrings.inputType).addEventListener('change', uiCtrl.changeType);
     }
 
     return {
